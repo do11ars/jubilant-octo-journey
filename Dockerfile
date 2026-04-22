@@ -1,5 +1,4 @@
 FROM vaultwarden/server:latest
-FROM debian:latest
 WORKDIR /render
 
 ARG TAILSCALE_VERSION
