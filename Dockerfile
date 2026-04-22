@@ -1,3 +1,4 @@
+FROM vaultwarden/server:latest
 FROM debian:latest
 WORKDIR /render
 
