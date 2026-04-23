@@ -1,41 +1,31 @@
 #!/usr/bin/env bash
 set -e
 
-# 1. Jalankan Tailscale daemon
+# 1. Jalankan Tailscale
 /render/tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
 TAILSCALED_PID=$!
 
 # 2. Hubungkan Tailscale
-ADVERTISE_ROUTES=${ADVERTISE_ROUTES:-10.0.0.0/8}
-until /render/tailscale up --authkey="${TAILSCALE_AUTHKEY}" --hostname="${RENDER_SERVICE_NAME}" --advertise-routes="$ADVERTISE_ROUTES"; do
+until /render/tailscale up --authkey="${TAILSCALE_AUTHKEY}" --hostname="${RENDER_SERVICE_NAME}"; do
   sleep 0.5
 done
-
 echo "Tailscale is up."
 
-# 3. Konfigurasi ProxyChains (Lokasi default Alpine: /etc/proxychains.conf)
-mkdir -p /etc/proxychains
-cat <<EOF > /etc/proxychains/proxychains.conf
-strict_chain
-proxy_dns 
-remote_dns_subnet 224
-tcp_read_time_out 15000
-tcp_connect_time_out 8000
-[ProxyList]
-socks5  127.0.0.1 1055
-localnet 127.0.0.0/255.0.0.0
-localnet ::1/128
-EOF
+# 3. BUAT TUNNEL SPESIFIK UNTUK DATABASE (Alternatif ProxyChains)
+# Ini akan memetakan localhost:5432 di dalam container ke 100.75.146.49:5432 di Tailscale
+# Lewat SOCKS5 Tailscale (1055)
+gost -L tcp://:5432/100.75.146.49:5432 -F socks5://127.0.0.1:1055 &
+GOST_PID=$!
 
-# 4. Tes koneksi
-echo "Mengetes koneksi ke Postgres..."
-proxychains4 nc -zv 100.75.146.49 5432
+# 4. Tunggu sebentar agar tunnel siap
+sleep 2
+echo "Tunnel database siap di localhost:5432"
 
-# 5. JALANKAN VAULTWARDEN
-echo "Starting Vaultwarden via ProxyChains..."
-# Di image alpine, binary berada di /vaultwarden
-cd /
-proxychains4 /vaultwarden &
+# 5. Jalankan Vaultwarden
+# PENTING: Ubah DATABASE_URL Anda di Render menjadi:
+# postgresql://user:password@localhost:5432/dbname
+export ROCKET_ADDRESS=0.0.0.0
+/vaultwarden &
 VAULT_PID=$!
 
-wait -n ${TAILSCALED_PID} ${VAULT_PID}
+wait -n ${TAILSCALED_PID} ${GOST_PID} ${VAULT_PID}
