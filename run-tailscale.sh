@@ -23,6 +23,8 @@ tcp_read_time_out 15000
 tcp_connect_time_out 8000
 [ProxyList]
 socks5  127.0.0.1 1055
+localnet 127.0.0.0/255.0.0.0
+localnet ::1/128
 EOF
 
 # 4. Tes koneksi
