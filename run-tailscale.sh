@@ -14,7 +14,7 @@ done
 echo "Tailscale is up."
 
 # 3. Konfigurasi ProxyChains (Lokasi default Alpine: /etc/proxychains.conf)
-cat <<EOF > /etc/proxychains.conf
+cat <<EOF > /etc/proxychains/proxychains.conf
 strict_chain
 proxy_dns 
 remote_dns_subnet 224
