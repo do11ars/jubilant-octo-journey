@@ -13,7 +13,7 @@ echo "Tailscale is up."
 
 # 3. BRIDGE PORT DATABASE (Tanpa ProxyChains/Gost)
 # Socat akan mendengarkan di port 5432 dan meneruskannya ke Tailscale SOCKS5
-socat TCP4-LISTEN:5432,fork,reuseaddr SOCKS4A:127.0.0.1:100.75.146.49:5432,socksport=1055 &
+socat TCP4-LISTEN:5432,fork,reuseaddr SOCKS5:100.75.146.49:5432,socksport=1055 &
 SOCAT_PID=$!
 
 echo "Bridge database aktif di localhost:5432 via Socat"
