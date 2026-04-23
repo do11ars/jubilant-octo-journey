@@ -5,7 +5,7 @@ WORKDIR /render
 RUN apk add --no-cache ca-certificates wget netcat-openbsd bash bind-tools
 
 # Install GOST (Alternatif ProxyChains yang lebih stabil)
-RUN wget -qO- https://github.com | gzip -d > /usr/local/bin/gost \
+RUN wget -qO- https://github.com/go-gost/gost/releases/download/v3.2.6/gost_3.2.6_linux_amd64.tar.gz | gzip -d > /usr/local/bin/gost \
     && chmod +x /usr/local/bin/gost
 
 ARG TAILSCALE_VERSION
