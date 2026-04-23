@@ -1,28 +1,23 @@
-FROM vaultwarden/server:latest
+FROM vaultwarden/server:latest-alpine
 WORKDIR /render
 
 ARG TAILSCALE_VERSION
 ENV TAILSCALE_VERSION=$TAILSCALE_VERSION
 
-RUN apt-get -qq update \
-  && apt-get -qq install --upgrade -y --no-install-recommends \
-    apt-transport-https \
+# Instalasi paket via apk
+# proxychains-ng adalah padanan proxychains4 di Alpine
+RUN apk add --no-cache \
     ca-certificates \
-    netcat-openbsd proxychains4 \
+    netcat-openbsd \
+    proxychains-ng \
     wget \
-    dnsutils \
-  > /dev/null \
-  && apt-get -qq clean \
-  && rm -rf \
-    /var/lib/apt/lists/* \
-    /tmp/* \
-    /var/tmp/* \
-  && :
+    bind-tools \
+    bash
 
 RUN echo "+search +short" > /root/.digrc
 COPY run-tailscale.sh /render/
 
 COPY install-tailscale.sh /tmp
-RUN /tmp/install-tailscale.sh && rm -r /tmp/*
+RUN chmod +x /tmp/install-tailscale.sh && /tmp/install-tailscale.sh && rm -rf /tmp/*
 
-CMD ./run-tailscale.sh
+CMD ["./run-tailscale.sh"]
